@@ -22,7 +22,8 @@ const options = {
 // See: https://devcenter.heroku.com/articles/dyno-metadata
 const url = process.env.HEROKU_URL;
 var bot;
-//check where the bot deployed
+
+//check where the bot deployed and decide whether to use polling or webhook
 if (process.env.NODE_ENV === 'production') {
     bot = new TelegramBot(TOKEN, options);
     bot.setWebHook(`${url}/bot${TOKEN}`);
@@ -32,7 +33,9 @@ if (process.env.NODE_ENV === 'production') {
     console.log('**** BOT initiated locally***** ')
 }
 
-//sum user input
+/* section below is for processing input from user */
+
+//sum number, user input /sum followed by digit separated by space, the bot will return the sum of all digits
 bot.onText(/^\/sum((\s+\d+)+)$/, function (msg, match) {
     var result = 0;
     console.log(match);
@@ -42,7 +45,8 @@ bot.onText(/^\/sum((\s+\d+)+)$/, function (msg, match) {
     bot.sendMessage(msg.chat.id, result)
 });
 
-//for user to check where the bot is deployed
+//for user to check where the bot is deployed, user input deploy then the bot return where he is currently deployed
+//this is for development purpose
 bot.onText(/.*deploy.*/, (msg, match) => {
     // console.log(msg);
     if (process.env.NODE_ENV === 'production') {
@@ -53,25 +57,38 @@ bot.onText(/.*deploy.*/, (msg, match) => {
 });
 
 //reminder
+//user input /remind [yyyy-mm-dd hh:mm:ss followed by message] [another message with the same format], the bot will remind the user
+//at the specified time with the message user inputted
 bot.onText(/\/remind.*/, (msg, match) => {
-    var extractMessageRegex = /\[(.*?)\]/gmi; //extract message that is inside []
-    var messageRegex = /(\d{4})-(\d{1,2})-(\d{1,2}) (\d{2}):(\d{2}):(\d{2})(.*)/gmi; //extract the date-time and the message
+    var extractMessageRegex = /\[(.*?)\]/gmi; //extract message that is inside [] ,included bracket
+    var messageDateTimeRegex = /((\d{4})-(\d{1,2})-(\d{1,2}) (\d{2}):(\d{2}):(\d{2}))(.*[^\]])/gmi; //extract the date-time in format yyyy-mm-dd hh:mm:ss and the message reminder
+    // console.log(match)
 
-    var extractMessage = match[0].match(extractMessageRegex);
-    for (let i = 0; i < extractMessage.length; i++) {
-        extractMessage[i] = extractMessage[i][0].match(messageRegex);
+    var extractedMessage = match[0].match(extractMessageRegex);
+    // console.log(extractedMessage)
+
+    var remindMessageList = []; //format as [[message 1],[message 2],...]
+
+    //below will return [[original string, match capture group 1,match capture group 2,....]]
+    for (let i = 0; i < extractedMessage.length; i++) {
+        remindMessageList.push(messageDateTimeRegex.exec(extractedMessage[i]));
     }
-    // console.log(match[0]);
-    console.log(extractMessage);
+    // console.log(remindMessageList);
 
     bot.sendMessage(msg.chat.id, "noted, I'll remind you");
 
-    // for (let i = 0; i < extractMessage.length; i++) {
-    //     let date = new Date(extractMessage[i][1], extractMessage[i][2] - 1, extractMessage[i][3], extractMessage[i][4], extractMessage[i][5], extractMessage[i][6]);
-    //     let message = extractMessage[i][7];
+    for (let i = 0; i < remindMessageList.length; i++) {
+        console.log(i)
+        // console.log(remindMessageList[i])
+        var date = new Date(remindMessageList[i][2], remindMessageList[i][3] - 1, remindMessageList[i][4], remindMessageList[i][5], remindMessageList[i][6], remindMessageList[i][7]);
+        var message = remindMessageList[i][8];
+        console.log('date:',date,'message:',message)
 
-    //     job(date,(message));
-    // }
+        const job = schedule.scheduleJob(date, function(){
+            bot.sendMessage(msg.chat.id, message);
+            // console.log(message);
+          });
+    }
 
 });
 
