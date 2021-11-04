@@ -64,25 +64,25 @@ bot.onText(/\/remind.*/, (msg, match) => {
     var messageDateTimeRegex = /((\d{4})-(\d{1,2})-(\d{1,2}) (\d{2}):(\d{2}):(\d{2}))(.*[^\]])/gmi; //extract the date-time in format yyyy-mm-dd hh:mm:ss and the message reminder
     // console.log(match)
 
-    var extractedMessage = match[0].match(extractMessageRegex);
+    var extractedMessage = extractMessageRegex.exec(match[0]);
     // console.log(extractedMessage)
 
     var remindMessageList = []; //format as [[message 1],[message 2],...]
 
     //below will return [[original string, match capture group 1,match capture group 2,....]]
     for (let i = 0; i < extractedMessage.length; i++) {
-        remindMessageList.push(messageDateTimeRegex.exec(extractedMessage[i]));
+        remindMessageList[i]=(messageDateTimeRegex.exec(extractedMessage[i]));
+        // console.log(remindMessageList[i]);
     }
-    // console.log(remindMessageList);
+    console.log(remindMessageList);
 
     bot.sendMessage(msg.chat.id, "noted, I'll remind you");
 
     for (let i = 0; i < remindMessageList.length; i++) {
-        console.log(i)
         // console.log(remindMessageList[i])
         var date = new Date(remindMessageList[i][2], remindMessageList[i][3] - 1, remindMessageList[i][4], remindMessageList[i][5], remindMessageList[i][6], remindMessageList[i][7]);
         var message = remindMessageList[i][8];
-        console.log('date:',date,'message:',message)
+        // console.log('date:',date,'message:',message)
 
         const job = schedule.scheduleJob(date, function(){
             bot.sendMessage(msg.chat.id, message);
