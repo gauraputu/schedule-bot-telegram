@@ -59,36 +59,23 @@ bot.onText(/.*deploy.*/, (msg, match) => {
 //reminder
 //user input /remind [yyyy-mm-dd hh:mm:ss followed by message] [another message with the same format], the bot will remind the user
 //at the specified time with the message user inputted
-bot.onText(/\/remind.*/, (msg, match) => {
-    var extractMessageRegex = /\[(.*?)\]/gmi; //extract message that is inside [] ,included bracket
+bot.onText(/\/remind.*/, (msg, matchedMessage) => {0 
     var messageDateTimeRegex = /((\d{4})-(\d{1,2})-(\d{1,2}) (\d{2}):(\d{2}):(\d{2}))(.*[^\]])/gmi; //extract the date-time in format yyyy-mm-dd hh:mm:ss and the message reminder
-    // console.log(match)
-
-    var extractedMessage = extractMessageRegex.exec(match[0]);
+    // console.log(matchedMessage)
+    var extractedMessage = messageDateTimeRegex.exec(matchedMessage);
     // console.log(extractedMessage)
-
-    var remindMessageList = []; //format as [[message 1],[message 2],...]
-
-    //below will return [[original string, match capture group 1,match capture group 2,....]]
-    for (let i = 0; i < extractedMessage.length; i++) {
-        remindMessageList[i]=(messageDateTimeRegex.exec(extractedMessage[i]));
-        // console.log(remindMessageList[i]);
-    }
-    console.log(remindMessageList);
 
     bot.sendMessage(msg.chat.id, "noted, I'll remind you");
 
-    for (let i = 0; i < remindMessageList.length; i++) {
-        // console.log(remindMessageList[i])
-        var date = new Date(remindMessageList[i][2], remindMessageList[i][3] - 1, remindMessageList[i][4], remindMessageList[i][5], remindMessageList[i][6], remindMessageList[i][7]);
-        var message = remindMessageList[i][8];
-        // console.log('date:',date,'message:',message)
+    //send message to user at the specified time
+    var date = new Date(extractedMessage[2], extractedMessage[3] - 1, extractedMessage[4], extractedMessage[5], extractedMessage[6], extractedMessage[7]);
+    var message = extractedMessage[8];
+    // console.log('date:',date,'message:',message)
 
-        const job = schedule.scheduleJob(date, function(){
-            bot.sendMessage(msg.chat.id, message);
-            // console.log(message);
-          });
-    }
+    const job = schedule.scheduleJob(date, function () {
+        bot.sendMessage(msg.chat.id, message);
+    });
+
 
 });
 
