@@ -35,24 +35,14 @@ if (process.env.NODE_ENV === 'production') {
 
 /* section below is for processing input from user */
 
-//sum number, user input /sum followed by digit separated by space, the bot will return the sum of all digits
-bot.onText(/^\/sum((\s+\d+)+)$/, function (msg, match) {
-    var result = 0;
-    console.log(match);
-    match[1].trim().split(/\s+/).forEach(function (i) {
-        result += (+i || 0);
-    })
-    bot.sendMessage(msg.chat.id, result)
-});
-
 //for user to check where the bot is deployed, user input deploy then the bot return where he is currently deployed
 //this is for development purpose
-bot.onText(/.*deploy.*/, (msg, match) => {
+bot.onText(/\/deploy.*/, (msg, match) => {
     // console.log(msg);
     if (process.env.NODE_ENV === 'production') {
-        bot.sendMessage(msg.chat.id, 'I am deployed on cloud');
+        bot.sendMessage(msg.chat.id, 'I am deployed on cloud, ready to serve you ;)');
     } else {
-        bot.sendMessage(msg.chat.id, 'I am deployed locally')
+        bot.sendMessage(msg.chat.id, 'I am deployed locally, this means the developer is currently tinkering around with the bot\n\nlets hope it doesn\'t take too long ;)')
     }
 });
 
@@ -75,12 +65,19 @@ bot.onText(/\/remind.*/, (msg, matchedMessage) => {0
     const job = schedule.scheduleJob(date, function () {
         bot.sendMessage(msg.chat.id, message);
     });
-
-
 });
 
+//greet the user
+bot.onText(/\/start.*/, (msg, match) => {
+    let greetings = 'Hi there, type in format "/remind yyyy-mm-dd hh:mm:ss message here" to create a new reminder or "/help to list all available commands"';
+    bot.sendMessage(msg.chat.id, greetings);
+});
 
-
+//list all bot available commands
+bot.onText(/\/help/, (msg, match)=>{
+    let commandList ="/start - start the bot\n/help -list all command\n/deploy -check whether the bot is online or not\n/remind yyyy-mm-dd hh:mm:ss message here - tell the bot to send you message at specified time"
+    bot.sendMessage(msg.chat.id, commandList);
+});
 
 
 
