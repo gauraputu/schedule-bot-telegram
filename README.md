@@ -9,4 +9,4 @@ for the list of command and its description type `/help`
 - [ ] make the bot inline capable, so you don't have to add the bot to the group chat
 
 # on progress issue
-- [ ] #3
+- [ ] [bot remind use server time instead of time from user](https://github.com/gauraputu/schedule-bot-telegram/issues/3) 
