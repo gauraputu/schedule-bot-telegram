@@ -4,12 +4,13 @@
   "description": "telegram bot to remind shift",
   "main": "index.js",
   "scripts": {
-    "start": "node bot.js"
+    "start": "node src/bot.js"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "dotenv": "^10.0.0",
+    "little-time": "^1.1.11",
     "node-schedule": "^2.0.0",
     "node-telegram-bot-api": "^0.54.0",
     "unix-time": "^1.0.1"
