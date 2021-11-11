@@ -66,12 +66,9 @@ bot.onText(/\/remind.*/, (msg, matchedMessage) => {0
     //workaround for server and user time difference
     var timeDelta = dateInUnix - msg.date;
     var dateTargetInServerTime = serverTime + timeDelta;
-    if(timeDelta<0) {
-        bot.sendMessage(msg.chat.id, "can't remind time of the past");
-    }
-    else {
-        bot.sendMessage(msg.chat.id, "noted, I'll remind you");
-        var newDate = new Date(dateTargetInServerTime * 1000);
+
+    const unixToDate = (timeInUnix) => {
+        var newDate = new Date(timeInUnix * 1000);
         var year =newDate.getFullYear();
         var month =newDate.getMonth();
         var date =newDate.getDate();
@@ -79,7 +76,19 @@ bot.onText(/\/remind.*/, (msg, matchedMessage) => {0
         var min =newDate.getMinutes();
         var sec =newDate.getSeconds();
         var newNewDate = new Date(year, month, date, hour, min, sec)
-        const job = schedule.scheduleJob(newNewDate, function () {
+        return newNewDate
+    }
+
+    if(timeDelta<0) {
+        bot.sendMessage(msg.chat.id, "can't remind time of the past");
+        console.log("\ndelta:",timeDelta,"\ndate in unix:",dateInUnix,"msg.date",msg.date)
+    }
+    else {
+        bot.sendMessage(msg.chat.id, "noted, I'll remind you");
+
+        console.log("\nunix schedule time:", dateTargetInServerTime, "unix server time:",serverTime)
+        console.log("\nscheduled time:",unixToDate(dateTargetInServerTime),"server time:",unixToDate(serverTime))
+        const job = schedule.scheduleJob(unixToDate(dateTargetInServerTime), function () {
             bot.sendMessage(msg.chat.id, message);
         });    
     }
