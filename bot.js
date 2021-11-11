@@ -4,6 +4,8 @@ require('dotenv').config(); //for local development
 const TOKEN = process.env.TELEGRAM_TOKEN;
 const TelegramBot = require('node-telegram-bot-api');
 const schedule = require('node-schedule');
+var unixTime = require('unix-time');
+// const 
 
 
 const options = {
@@ -51,20 +53,38 @@ bot.onText(/\/deploy.*/, (msg, match) => {
 //at the specified time with the message user inputted
 bot.onText(/\/remind.*/, (msg, matchedMessage) => {0 
     var messageDateTimeRegex = /((\d{4})-(\d{1,2})-(\d{1,2}) (\d{2}):(\d{2}):(\d{2}))(.*[^\]])/gmi; //extract the date-time in format yyyy-mm-dd hh:mm:ss and the message reminder
-    // console.log(matchedMessage)
+    var serverTime = unixTime(Date.now()-1) //-1 to match msg.date, there's a difference of 1 seconds
+    // console.log(msg.date)
     var extractedMessage = messageDateTimeRegex.exec(matchedMessage);
     // console.log(extractedMessage)
 
-    bot.sendMessage(msg.chat.id, "noted, I'll remind you");
-
     //send message to user at the specified time
-    var date = new Date(extractedMessage[2], extractedMessage[3] - 1, extractedMessage[4], extractedMessage[5], extractedMessage[6], extractedMessage[7]);
+    var dateUserTarget = new Date(extractedMessage[2], extractedMessage[3] - 1, extractedMessage[4], extractedMessage[5], extractedMessage[6], extractedMessage[7]);
+    var dateInUnix = unixTime(dateUserTarget);
     var message = extractedMessage[8];
-    // console.log('date:',date,'message:',message)
+    
+    //workaround for server and user time difference
+    var timeDelta = dateInUnix - msg.date;
+    var dateTargetInServerTime = serverTime + timeDelta;
+    if(timeDelta<0) {
+        bot.sendMessage(msg.chat.id, "can't remind time of the past");
+    }
+    else {
+        bot.sendMessage(msg.chat.id, "noted, I'll remind you");
+        var newDate = new Date(dateTargetInServerTime * 1000);
+        var year =newDate.getFullYear();
+        var month =newDate.getMonth();
+        var date =newDate.getDate();
+        var hour =newDate.getHours();
+        var min =newDate.getMinutes();
+        var sec =newDate.getSeconds();
+        var newNewDate = new Date(year, month, date, hour, min, sec)
+        const job = schedule.scheduleJob(newNewDate, function () {
+            bot.sendMessage(msg.chat.id, message);
+        });    
+    }
+    // console.log('date:',date, "unixtime:", unixTime(date))
 
-    const job = schedule.scheduleJob(date, function () {
-        bot.sendMessage(msg.chat.id, message);
-    });
 });
 
 //greet the user
