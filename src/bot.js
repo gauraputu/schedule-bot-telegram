@@ -67,7 +67,7 @@ bot.onText(/\/remind.*/, (msg, matchedMessage) => {
     // let serverTime = unixTime(Date.now()-1) //-1 to match msg.date, there's a difference of 1 seconds
     let extractedMessage = messageDateTimeRegex.exec(matchedMessage);
     console.group("--------------remind--------------")
-    console.log("msg.date:",msg.date,"\nserverTime:",serverTime,"\nextracted message:",extractedMessage);
+    console.log("msg.date:",msg.date,"\nextracted message:",extractedMessage);
     console.groupEnd();
 
     //send message to user at the specified time
@@ -79,7 +79,7 @@ bot.onText(/\/remind.*/, (msg, matchedMessage) => {
     //workaround for server and user time difference
     let timeDelta = dateInUnix - msg.date;
     // let dateTargetInServerTime = serverTime + timeDelta;
-    console.log("timeDelta:",timeDelta,"\ndateTargetInServerTime:",dateTargetInServerTime);
+    console.log("timeDelta:",timeDelta);
 
     const unixToDate = (timeInUnix) => {
         let newDate = new Date(timeInUnix * 1000);
@@ -107,8 +107,6 @@ bot.onText(/\/remind.*/, (msg, matchedMessage) => {
             bot.sendMessage(msg.chat.id, message);
         });    
     }
-    console.log('date:',date, "unixtime:", unixTime(date))
-
 });
 
 /**
