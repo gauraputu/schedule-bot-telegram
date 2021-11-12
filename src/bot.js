@@ -64,48 +64,41 @@ bot.onText(/\/deploy.*/, (msg, match) => {
  */
 bot.onText(/\/remind.*/, (msg, matchedMessage) => { 
     let messageDateTimeRegex = /((\d{4})-(\d{1,2})-(\d{1,2}) (\d{2}):(\d{2}):(\d{2}))(.*[^\]])/gmi; //extract the date-time in format yyyy-mm-dd hh:mm:ss and the message reminder
-    // let serverTime = unixTime(Date.now()-1) //-1 to match msg.date, there's a difference of 1 seconds
     let extractedMessage = messageDateTimeRegex.exec(matchedMessage);
+    let dateUserTarget = new Date(extractedMessage[2], extractedMessage[3] - 1, extractedMessage[4], extractedMessage[5], extractedMessage[6], extractedMessage[7]);
+    let dateTargetInUnix = unixTime(dateUserTarget);
+    let message = extractedMessage[8];
     console.group("--------------remind--------------")
     console.log("msg.date:",msg.date,"\nextracted message:",extractedMessage);
+    console.log("dateUserTarget:",dateUserTarget,"\ndateTargetInUnix:",dateTargetInUnix,"\nmessage:",message);
     console.groupEnd();
 
-    //send message to user at the specified time
-    let dateUserTarget = new Date(extractedMessage[2], extractedMessage[3] - 1, extractedMessage[4], extractedMessage[5], extractedMessage[6], extractedMessage[7]);
-    let dateInUnix = unixTime(dateUserTarget);
-    let message = extractedMessage[8];
-    console.log("dateUserTarget:",dateUserTarget,"\ndateInUnix:",dateInUnix,"\nmessage:",message);
-
     //workaround for server and user time difference
-    let timeDelta = dateInUnix - msg.date;
-    // let dateTargetInServerTime = serverTime + timeDelta;
+    let timeDelta = dateTargetInUnix - msg.date;
     console.log("timeDelta:",timeDelta);
 
-    const unixToDate = (timeInUnix) => {
+    const unixToDateConverter = (timeInUnix) => {
         let newDate = new Date(timeInUnix * 1000);
-        let year =newDate.getFullYear();
-        let month =newDate.getMonth();
-        let date =newDate.getDate();
-        let hour =newDate.getHours();
-        let min =newDate.getMinutes();
-        let sec =newDate.getSeconds();
-        let newNewDate = new Date(year, month, date, hour, min, sec)
+        let newNewDate = [newDate.getFullYear(), newDate.getMonth(), newDate.getDate(), newDate.getHours(), newDate.getMinutes(), newDate.getSeconds()]
         return newNewDate
     }
+    const dateToUnixConverter = (timeInDate) => {
+        return Math.floor(new Date(timeInDate).getTime()/1000);
+    } 
 
     if(timeDelta<0) {
         bot.sendMessage(msg.chat.id, "can't remind time of the past");
-        console.error("\ndelta:",timeDelta,"\ndate in unix:",dateInUnix,"msg.date",msg.date)
+        console.error("\ndelta:",timeDelta,"\ndate target in unix:",dateTargetInUnix,"msg.date",msg.date)
     }
     else {
         bot.sendMessage(msg.chat.id, "noted, I'll remind you");
-        let serverTimeTarget = timeDelta + unixTime(Date.now()-1);
+        let serverTimeTargetUnixFormat = timeDelta + unixTime(Date.now()-1);
+        let serverTimeTargetDateFormat = unixToDateConverter(serverTimeTarget)
+        console.log("serverTimeTargetUnixFormat:",serverTimeTargetUnixFormat,"serverTimeTargetDateFormat:",serverTimeTargetDateFormat);
 
-        // console.log("\nunix schedule time:", dateTargetInServerTime, "unix server time:",serverTime)
-        // console.log("\nscheduled time:",unixToDate(dateTargetInServerTime),"server time:",unixToDate(serverTime))
-        const job = schedule.scheduleJob(unixToDate(serverTimeTarget), function () {
-            bot.sendMessage(msg.chat.id, message);
-        });    
+        // const job = schedule.scheduleJob(serverTimeTargetDateFormat[0],serverTimeTargetDateFormat[1],serverTimeTargetDateFormat[2], function () {
+        //     bot.sendMessage(msg.chat.id, message);
+        // });    
     }
 });
 
