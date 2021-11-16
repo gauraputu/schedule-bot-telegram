@@ -102,7 +102,8 @@ bot.onText(/\/remind.*/, (msg, matchedMessage) => {
     else {
         bot.sendMessage(msg.chat.id, "noted, I'll remind you");
         let serverTimeTargetUnixFormat = timeDelta + unixTime(Date.now()-1);
-        console.log("serverTimeTargetUnixFormat:",serverTimeTargetUnixFormat);
+        let serverTime = Date.now()-1;
+        console.log("serverTimeTargetUnixFormat:",serverTimeTargetUnixFormat,"server time:", serverTime);
         let serverTimeTargetDateFormat = unixToDateConverter(serverTimeTargetUnixFormat);
         console.log("serverTimeTargetDateFormat:",serverTimeTargetDateFormat);
         let remindTime = new Date(serverTimeTargetDateFormat[0],serverTimeTargetDateFormat[1],serverTimeTargetDateFormat[2],serverTimeTargetDateFormat[3],serverTimeTargetDateFormat[4],serverTimeTargetDateFormat[5]);
@@ -133,6 +134,10 @@ bot.onText(/this is a test/, (msg,match)=>{
     bot.sendMessage(msg.chat.id, "helloh there!")
 })
 
-
+bot.onText(/\/time/, (msg, match)=>{
+    let time = Date.now();
+    console.log(time);
+    bot.sendMessage(msg.chat.id, `server time now is: ${time}`)
+})
 
 
