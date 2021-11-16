@@ -91,9 +91,6 @@ bot.onText(/\/remind.*/, (msg, matchedMessage) => {
         let newNewDate = [newDate.getFullYear(), newDate.getMonth(), newDate.getDate(), newDate.getHours(), newDate.getMinutes(), newDate.getSeconds()]
         return newNewDate
     }
-    const dateToUnixConverter = (timeInDate) => {
-        return Math.floor(new Date(timeInDate).getTime()/1000);
-    } 
 
     if(timeDelta<0) {
         bot.sendMessage(msg.chat.id, "can't remind time of the past");
@@ -135,6 +132,7 @@ bot.onText(/this is a test/, (msg,match)=>{
 })
 
 /** check server time now, this is for development only */
+
 bot.onText(/\/time/, (msg, match)=>{
     const unixToDateConverter = (timeInUnix) => {
         let newDate = new Date(timeInUnix * 1000);
@@ -144,7 +142,7 @@ bot.onText(/\/time/, (msg, match)=>{
     let time = Date.now();
     let serverTime = unixToDateConverter(time);
     console.log(serverTime);
-    bot.sendMessage(msg.chat.id, `server time now is: ${serverTime}`)
+    bot.sendMessage(msg.chat.id, `server time now is: ${serverTime}, ${time}`)
 })
 
 
