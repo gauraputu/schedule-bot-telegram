@@ -73,7 +73,16 @@ bot.onText(/\/remind.*/, (msg, matchedMessage) => {
     console.log("dateUserTarget:",dateUserTarget,"\ndateTargetInUnix:",dateTargetInUnix,"\nmessage:",message);
     console.groupEnd();
 
-    //workaround for server and user time difference
+    /** workaround for server and user time difference
+     * $time from user (unix)
+     * $time to remind (date)
+     * $server time (unix)
+     * 
+     * convert $time to remind to unix
+     * get difference $time to remind unix with $time from user
+     * add the difference to $server time
+     * run scheduler
+     */
     let timeDelta = dateTargetInUnix - msg.date;
     console.log("timeDelta:",timeDelta);
 
@@ -93,12 +102,14 @@ bot.onText(/\/remind.*/, (msg, matchedMessage) => {
     else {
         bot.sendMessage(msg.chat.id, "noted, I'll remind you");
         let serverTimeTargetUnixFormat = timeDelta + unixTime(Date.now()-1);
-        let serverTimeTargetDateFormat = unixToDateConverter(serverTimeTarget)
-        console.log("serverTimeTargetUnixFormat:",serverTimeTargetUnixFormat,"serverTimeTargetDateFormat:",serverTimeTargetDateFormat);
+        console.log("serverTimeTargetUnixFormat:",serverTimeTargetUnixFormat);
+        let serverTimeTargetDateFormat = unixToDateConverter(serverTimeTargetUnixFormat);
+        console.log("serverTimeTargetDateFormat:",serverTimeTargetDateFormat);
+        let remindTime = new Date(serverTimeTargetDateFormat[0],serverTimeTargetDateFormat[1],serverTimeTargetDateFormat[2],serverTimeTargetDateFormat[3],serverTimeTargetDateFormat[4],serverTimeTargetDateFormat[5]);
 
-        // const job = schedule.scheduleJob(serverTimeTargetDateFormat[0],serverTimeTargetDateFormat[1],serverTimeTargetDateFormat[2], function () {
-        //     bot.sendMessage(msg.chat.id, message);
-        // });    
+        const job = schedule.scheduleJob(remindTime,function () {
+            bot.sendMessage(msg.chat.id, message);
+        });    
     }
 });
 
@@ -118,6 +129,9 @@ bot.onText(/\/help/, (msg, match)=>{
     bot.sendMessage(msg.chat.id, commandList);
 });
 
+bot.onText(/this is a test/, (msg,match)=>{
+    bot.sendMessage(msg.chat.id, "helloh there!")
+})
 
 
 
