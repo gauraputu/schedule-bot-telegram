@@ -62,52 +62,35 @@ bot.onText(/\/deploy.*/, (msg, match) => {
  * user input /remind [yyyy-mm-dd hh:mm:ss followed by message] [another message with the same format], the bot will remind the user
  * at the specified time with the message user inputted
  */
-bot.onText(/\/remind.*/, (msg, matchedMessage) => { 
+bot.onText(/\/remind.*/, (msg, matchedMessage) => {
     let messageDateTimeRegex = /((\d{4})-(\d{1,2})-(\d{1,2}) (\d{2}):(\d{2}):(\d{2}))(.*[^\]])/gmi; //extract the date-time in format yyyy-mm-dd hh:mm:ss and the message reminder
     let extractedMessage = messageDateTimeRegex.exec(matchedMessage);
     let dateUserTarget = new Date(extractedMessage[2], extractedMessage[3] - 1, extractedMessage[4], extractedMessage[5], extractedMessage[6], extractedMessage[7]);
     let dateTargetInUnix = unixTime(dateUserTarget);
     let message = extractedMessage[8];
     console.group("--------------remind--------------")
-    console.log("msg.date:",msg.date,"\nextracted message:",extractedMessage);
-    console.log("dateUserTarget:",dateUserTarget,"\ndateTargetInUnix:",dateTargetInUnix,"\nmessage:",message);
+    console.log("msg.date:", msg.date, "\nextracted message:", extractedMessage);
+    console.log("dateUserTarget:", dateUserTarget, "\ndateTargetInUnix:", dateTargetInUnix, "\nmessage:", message);
     console.groupEnd();
 
     /** workaround for server and user time difference
-     * $time from user (unix)
-     * $time to remind (date)
-     * $server time (unix)
-     * 
-     * convert $time to remind to unix
-     * get difference $time to remind unix with $time from user
-     * add the difference to $server time
-     * run scheduler
+     * get time differece between message time and user remind time in unix timestamp format
+     * a timer delay as with time differece as input
      */
     let timeDelta = dateTargetInUnix - msg.date;
-    console.log("timeDelta:",timeDelta);
+    console.log("timeDelta:", timeDelta);
 
-    const unixToDateConverter = (timeInUnix) => {
-        let newDate = new Date(timeInUnix * 1000);
-        let newNewDate = [newDate.getFullYear(), newDate.getMonth(), newDate.getDate(), newDate.getHours(), newDate.getMinutes(), newDate.getSeconds()]
-        return newNewDate
-    }
-
-    if(timeDelta<0) {
+    if (timeDelta < 0) {
         bot.sendMessage(msg.chat.id, "can't remind time of the past");
-        console.error("\ndelta:",timeDelta,"\ndate target in unix:",dateTargetInUnix,"msg.date",msg.date)
+        console.error("\ndelta:", timeDelta, "\ndate target in unix:", dateTargetInUnix, "msg.date", msg.date)
     }
     else {
         bot.sendMessage(msg.chat.id, "noted, I'll remind you");
-        let serverTimeTargetUnixFormat = timeDelta + unixTime(Date.now()-1);
-        let serverTime = Date.now()-1;
-        console.log("serverTimeTargetUnixFormat:",serverTimeTargetUnixFormat,"server time:", serverTime);
-        let serverTimeTargetDateFormat = unixToDateConverter(serverTimeTargetUnixFormat);
-        console.log("serverTimeTargetDateFormat:",serverTimeTargetDateFormat);
-        let remindTime = new Date(serverTimeTargetDateFormat[0],serverTimeTargetDateFormat[1],serverTimeTargetDateFormat[2],serverTimeTargetDateFormat[3],serverTimeTargetDateFormat[4],serverTimeTargetDateFormat[5]);
+        console.log(`time delta: ${timeDelta}`)
 
-        const job = schedule.scheduleJob(remindTime,function () {
+        setTimeout(function () {
             bot.sendMessage(msg.chat.id, message);
-        });    
+        }, timeDelta*1000);
     }
 });
 
@@ -122,27 +105,7 @@ bot.onText(/\/start.*/, (msg, match) => {
 /**
  * list all bot available commands 
  */
-bot.onText(/\/help/, (msg, match)=>{
-    let commandList ="/start - start the bot\n/help -list all command\n/deploy -check whether the bot is online or not\n/remind yyyy-mm-dd hh:mm:ss message here - tell the bot to send you message at specified time"
+bot.onText(/\/help/, (msg, match) => {
+    let commandList = "/start - start the bot\n/help -list all command\n/deploy -check whether the bot is online or not\n/remind yyyy-mm-dd hh:mm:ss message here - tell the bot to send you message at specified time"
     bot.sendMessage(msg.chat.id, commandList);
 });
-
-bot.onText(/this is a test/, (msg,match)=>{
-    bot.sendMessage(msg.chat.id, "helloh there!")
-})
-
-/** check server time now, this is for development only */
-
-bot.onText(/\/time/, (msg, match)=>{
-    const unixToDateConverter = (timeInUnix) => {
-        let newDate = new Date(timeInUnix * 1000);
-        let newNewDate = [newDate.getFullYear(), newDate.getMonth(), newDate.getDate(), newDate.getHours(), newDate.getMinutes(), newDate.getSeconds()]
-        return newNewDate
-    }
-    let time = Date.now();
-    let serverTime = unixToDateConverter(time);
-    console.log(serverTime);
-    bot.sendMessage(msg.chat.id, `server time now is: ${serverTime}, ${time}`)
-})
-
-
