@@ -136,8 +136,13 @@ bot.onText(/this is a test/, (msg,match)=>{
 
 /** check server time now, this is for development only */
 bot.onText(/\/time/, (msg, match)=>{
+    const unixToDateConverter = (timeInUnix) => {
+        let newDate = new Date(timeInUnix * 1000);
+        let newNewDate = [newDate.getFullYear(), newDate.getMonth(), newDate.getDate(), newDate.getHours(), newDate.getMinutes(), newDate.getSeconds()]
+        return newNewDate
+    }
     let time = Date.now();
-    let serverTime = Date.now()-1;
+    let serverTime = unixToDateConverter(time);
     console.log(serverTime);
     bot.sendMessage(msg.chat.id, `server time now is: ${serverTime}`)
 })
