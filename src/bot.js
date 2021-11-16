@@ -134,10 +134,12 @@ bot.onText(/this is a test/, (msg,match)=>{
     bot.sendMessage(msg.chat.id, "helloh there!")
 })
 
+/** check server time now, this is for development only */
 bot.onText(/\/time/, (msg, match)=>{
     let time = Date.now();
-    console.log(time);
-    bot.sendMessage(msg.chat.id, `server time now is: ${time}`)
+    let serverTime = Date.now()-1;
+    console.log(serverTime);
+    bot.sendMessage(msg.chat.id, `server time now is: ${serverTime}`)
 })
 
 
