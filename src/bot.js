@@ -1,10 +1,9 @@
 require('dotenv').config();
 const TOKEN = process.env.TELEGRAM_TOKEN;
-const TelegramBot = require('node-telegram-bot-api');
-const schedule = require('node-schedule');
+const TelegramBot = require('node-telegram-bot-api'); 
 const unixTime = require('unix-time');
-const littleTime = require('little-time');
-
+const { parse } = require('dotenv');
+const { DateTime } = require("luxon");
 
 const options = {
     webHook: {
@@ -63,22 +62,29 @@ bot.onText(/\/deploy.*/, (msg, match) => {
  * at the specified time with the message user inputted
  */
 bot.onText(/\/remind.*/, (msg, matchedMessage) => {
-    let messageDateTimeRegex = /((\d{4})-(\d{1,2})-(\d{1,2}) (\d{2}):(\d{2}):(\d{2}))(.*[^\]])/gmi; //extract the date-time in format yyyy-mm-dd hh:mm:ss and the message reminder
+    let messageDateTimeRegex = /((\d{4})-(\d{1,2})-(\d{1,2}) (\d{2}):(\d{2}):(\d{2})(\+\d{1,2}))(.*[^\]])/gmi; //extract the date-time in format yyyy-mm-dd hh:mm:ss and the message reminder
     let extractedMessage = messageDateTimeRegex.exec(matchedMessage);
-    let dateUserTarget = new Date(extractedMessage[2], extractedMessage[3] - 1, extractedMessage[4], extractedMessage[5], extractedMessage[6], extractedMessage[7]);
-    let dateTargetInUnix = unixTime(dateUserTarget);
-    let message = extractedMessage[8];
+    let timeZone = parseInt(extractedMessage[8]);
+    let remindDate = [extractedMessage[2], extractedMessage[3], extractedMessage[4], extractedMessage[5], extractedMessage[6], extractedMessage[7]];
+    remindDate.forEach(e=>parseInt(e));
+    console.log(remindDate)
+    let dateUserTarget = new DateTime(remindDate[0],remindDate[1],remindDate[2],remindDate[3],remindDate[4],remindDate[5]);
+    // let dateTargetInUnix = unixTime(dateUserTarget);
+    let dateUserTargetInUTC = dateUserTarget.minus({hours: timeZone});
+    let message = extractedMessage[9];
     console.group("--------------remind--------------")
-    console.log("msg.date:", msg.date, "\nextracted message:", extractedMessage);
-    console.log("dateUserTarget:", dateUserTarget, "\ndateTargetInUnix:", dateTargetInUnix, "\nmessage:", message);
+    console.log(`msg.date: ${msg.date} timeZone: ${timeZone}`)
+    console.log("\nextracted message:", extractedMessage);
+    console.log("dateUserTarget:", dateUserTarget, "\dateUserTarget.ts :", dateUserTarget.ts, "\nmessage:", message);
+    console.log(`dateUserTargetInUTC: ${dateUserTargetInUTC}`)
     console.groupEnd();
 
     /** workaround for server and user time difference
      * get time differece between message time and user remind time in unix timestamp format
      * a timer delay as with time differece as input
      */
-    let timeDelta = dateTargetInUnix - msg.date;
-    console.log("timeDelta:", timeDelta);
+    let timeDelta = dateUserTargetInUTC - msg.date;
+    console.log(`time delta: ${timeDelta}`);
 
     if (timeDelta < 0) {
         bot.sendMessage(msg.chat.id, "can't remind time of the past");
@@ -109,3 +115,5 @@ bot.onText(/\/help/, (msg, match) => {
     let commandList = "/start - start the bot\n/help -list all command\n/deploy -check whether the bot is online or not\n/remind yyyy-mm-dd hh:mm:ss message here - tell the bot to send you message at specified time"
     bot.sendMessage(msg.chat.id, commandList);
 });
+
+bot.on('polling_error', (err) => console.log(err));
